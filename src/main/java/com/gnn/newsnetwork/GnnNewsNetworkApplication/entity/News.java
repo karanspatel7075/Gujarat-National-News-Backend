@@ -8,7 +8,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import jakarta.persistence.Id;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -17,8 +19,16 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "news")
-public class News {
+@Table(name = "news",
+        indexes = {
+                @Index(name = "idx_status", columnList = "status"),
+                @Index(name = "idx_category", columnList = "category"),
+                @Index(name = "idx_city", columnList = "city"),
+                @Index(name = "idx_state", columnList = "state"),
+                @Index(name = "idx_createdAt", columnList = "createdAt")
+        }
+)
+public class News implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,7 +48,6 @@ public class News {
     private TypeOfNews typeOfNews; // Story & Digital
     private String category;
 
-    private String language; // Gujarati and English
     private String anchorName; // ONLY for DIGITAL news
 
     @Enumerated(EnumType.STRING)
@@ -60,7 +69,13 @@ public class News {
     // Why?  = EAGER loads media everywhere / Slows down app / Bad for scaling
 
     private String state;   // Gujarat, Maharashtra
+
     private String city;    // Ahmedabad, Surat
 
+    private String finalVideoUrl;
+    private String videoAbsolutePath;
+    private String processingStatus; // PENDING, PROCESSING, COMPLETED, FAILED
 
+    private static final long serialVersionUID = 1L;
+    
 }

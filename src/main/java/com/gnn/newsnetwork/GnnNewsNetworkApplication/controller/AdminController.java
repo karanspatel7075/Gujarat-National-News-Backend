@@ -4,7 +4,6 @@ import com.gnn.newsnetwork.GnnNewsNetworkApplication.dto.DigitalNewsResponseDto;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.dto.EditorResponseDto;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.dto.PageResponse;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.dto.StoryNewsResponseDto;
-import com.gnn.newsnetwork.GnnNewsNetworkApplication.entity.News;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.entity.Users;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.service.AdminService;
 import lombok.RequiredArgsConstructor;

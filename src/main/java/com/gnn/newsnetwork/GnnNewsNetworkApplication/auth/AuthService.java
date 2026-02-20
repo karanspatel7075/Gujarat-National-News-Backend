@@ -7,6 +7,7 @@ import com.gnn.newsnetwork.GnnNewsNetworkApplication.entity.PasswordResetOtp;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.entity.Users;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.entity.UserOtp;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.enums.ROLE;
+import com.gnn.newsnetwork.GnnNewsNetworkApplication.exception.InvalidRequestException;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.repository.PasswordResetOtpRepository;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.repository.UserOtpRepository;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.repository.UserRepository;
@@ -113,54 +114,6 @@ public class AuthService {
                 .build();
     }
 
-    public void sendOtp(ForgetPasswordRequestDto dto) {
-
-        Users users = userRepository.findByEmail(dto.getEmail()).orElseThrow(() -> new RuntimeException("No users found"));
-
-        String otp = otpGenerator.generateOtp();
-
-        PasswordResetOtp resetOtp = PasswordResetOtp.builder()
-                .email(users.getEmail())
-                .otp(otp)
-                .expiryTime(LocalDateTime.now().plusMinutes(5))
-                .build();
-
-        System.out.println("AuthService sendOtp() CALLED");
-        System.out.println("Email: " + users.getEmail());
-        log.info("OTP generated for email={}", users.getEmail());
-
-
-        resetOtpRepository.save(resetOtp);
-        emailServiceImple.sendOtp(users.getEmail(), otp);
-    }
-
-    public void resetPassword(ResetPasswordRequestDto dto) throws MessagingException, UnsupportedEncodingException, BadRequestException {
-
-        PasswordResetOtp savedOtp = resetOtpRepository.findByEmail(dto.getEmail()).orElseThrow(() -> new RuntimeException("OTP not found"));
-
-        if(savedOtp.getExpiryTime().isBefore(LocalDateTime.now())) {
-            throw  new RuntimeException("OTP expired");
-        }
-
-        if(!savedOtp.getOtp().equals(dto.getOtp())) {
-            throw new BadRequestException("Invalid OTP");
-        }
-
-        Users users = userRepository.findByEmail(dto.getEmail()).orElseThrow(() -> new RuntimeException("Email invalid"));
-        users.setPassword(passwordEncoder.encode(dto.getNewPassword()));
-        userRepository.save(users);
-
-        // Delete the otp for security purpose
-        resetOtpRepository.delete(savedOtp);
-
-        try {
-            emailServiceImple.sendConfirmationMail(users);
-        } catch (Exception e) {
-            // optional: log error (don’t fail reset if mail fails)
-            System.out.println("Failed to send confirmation email: " + e.getMessage());
-        }
-    }
-
     public LoginResponseDto loginOrRegister(UserLoginRequestDto dto) {
 
         Optional<Users> optionalUser = userRepository.findByUsername(dto.getUsername());
@@ -174,7 +127,7 @@ public class AuthService {
 
             // Check password
             if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-                throw new RuntimeException("Invalid password");
+                throw new InvalidRequestException("Invalid username or password");
             }
 
         }
@@ -217,65 +170,4 @@ public class AuthService {
                 .username(dto.getUsername())
                 .build();
     }
-
-//    public void sendRegistrationOtp(UserRegisterDto dto) {
-//        // Check whether the provided email exist in DB or not
-//        if(userRepository.findByEmail(dto.getEmail()).isPresent()) {
-//            throw new IllegalArgumentException("Partner already registered");
-//        }
-//
-//        // Generate otp here
-//        String otp = otpGenerator.generateOtp();
-//
-//        // Creation of otp here ( email, otp, time )
-//        UserOtp userOtp = UserOtp.builder()
-//                .email(dto.getEmail())
-//                .otp(otp)
-//                .expiryTime(LocalDateTime.now().plusMinutes(5))
-//                .build();
-//
-//        otpRepository.save(userOtp);
-//
-//        // Calling emailService to forward otp to delivery partner email
-////        emailServiceImple.sendOtp(dto.getEmail(), otp);
-//        System.out.println("sendOtp function called : Hheheh");
-//        System.out.println("Email: " + dto.getEmail());
-//        System.out.println("OTP: " + otp);
-//    }
-
-//    @Transactional
-//    public LoginResponseDto verifyOtpAndRegister(UserRegisterDto dto, String otp) throws IOException {
-//        // Fetch the provided opt here
-//        UserOtp savedOtp = otpRepository.findByEmail(dto.getEmail()).orElseThrow(() -> new RuntimeException("Otp not found"));
-//
-//        // Expiry date validation
-//        if (savedOtp.getExpiryTime().isBefore(LocalDateTime.now())) {
-//            throw new RuntimeException("Otp expired");
-//        }
-//
-//        // Verifying given otp with Backend provided otp
-//        if (!savedOtp.getOtp().equals(otp)) {
-//            throw new RuntimeException("Invalid OTP");
-//        }
-//
-//        Users users = userRepository.findByEmail(dto.getEmail())
-//                .orElseGet(() -> userRepository.save(
-//                        Users.builder()
-//                                .email(dto.getEmail())
-//                                .role(ROLE.USER)
-//                                .active(true)
-//                                .createdAt(LocalDateTime.now())
-//                                .build()
-//                ));
-//
-//
-//        Users savedUsers = userRepository.save(users);
-//
-//        otpRepository.delete(savedOtp);
-//
-//        // 3️⃣ Generate JWT using USER
-//        String token = authTokenGen.generateAccessToken(savedUsers);
-//        return new LoginResponseDto(token, savedUsers.getId());
-//    }
-
 }

@@ -13,19 +13,19 @@ public class NewsSpecification {
     public static Specification<News> hasState(String state) {
         return (root, query, cb) ->
                 state == null ? null :
-                        cb.equal(root.get("state"), state);
+                        cb.equal(cb.lower(root.get("state")), state.toLowerCase());
     }
 
     public static Specification<News> hasCity(String city) {
         return (root, query, cb) ->
                 city == null ? null :
-                        cb.equal(root.get("city"), city);
+                        cb.equal(cb.lower(root.get("city")), city.toLowerCase());
     }
 
     public static Specification<News> hasCategory(String category) {
         return (root, query, cb) ->
                 category == null ? null :
-                        cb.equal(root.get("category"), category);
+                        cb.equal(cb.lower(root.get("category")), category.toLowerCase());
     }
 
     public static Specification<News> hasType(TypeOfNews type) {
@@ -38,4 +38,22 @@ public class NewsSpecification {
         return (root, query, cb) ->
                 cb.equal(root.get("status"), NewsStatus.PUBLISHED);
     }
+
+    public static Specification<News> hasKeyword(String keyword) {
+        return (root, query, cb) -> {
+            if (keyword == null || keyword.isBlank()) return null;
+
+            String likePattern = "%" + keyword.toLowerCase() + "%";
+
+            return cb.or(
+                    cb.like(cb.lower(root.get("title").as(String.class)), likePattern),
+                    cb.like(cb.lower(root.get("shortDescription").as(String.class)), likePattern),
+                    cb.like(cb.lower(root.get("category").as(String.class)), likePattern),
+                    cb.like(cb.lower(root.get("city").as(String.class)), likePattern),
+                    cb.like(cb.lower(root.get("state").as(String.class)), likePattern)
+            );
+        };
+    }
+
+
 }

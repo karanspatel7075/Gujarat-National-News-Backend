@@ -1,7 +1,6 @@
 package com.gnn.newsnetwork.GnnNewsNetworkApplication.controller;
 
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.auth.*;
-import com.gnn.newsnetwork.GnnNewsNetworkApplication.dto.ForgetPasswordRequestDto;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.dto.ResetPasswordRequestDto;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,12 +9,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
 @Slf4j
 @RestController
@@ -67,36 +64,6 @@ public class AuthController {
     public ResponseEntity<LoginResponseDto> loginOrRegister(@RequestBody UserLoginRequestDto dto) {
         return ResponseEntity.ok(authService.loginOrRegister(dto));
     }
-
-
-//    // Only for Users to login
-//    @PostMapping("/register/user/send-otp")
-//    public ResponseEntity<String> sendOtp(@ModelAttribute UserRegisterDto dto) {
-//        authService.sendRegistrationOtp(dto);
-//        return ResponseEntity.ok("OTP sent to email");
-//    }
-//
-//    // Forget Password
-//    @PostMapping("/forgot-password")
-//    public ResponseEntity<String> forgetPassword(@Valid @RequestBody ForgetPasswordRequestDto dto) {
-//        System.out.println("Email : " + dto.getEmail());
-//        authService.sendOtp(dto);
-//        return ResponseEntity.ok("OTP sent to email");
-//    }
-
-    // Reset Password
-    @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordRequestDto dto) throws MessagingException, UnsupportedEncodingException, BadRequestException {
-        System.out.println(dto.getNewPassword() + " " + dto.getEmail() + " " + dto.getOtp());
-        authService.resetPassword(dto);
-        return ResponseEntity.ok("Password reset successful");
-    }
-
-//    @PostMapping(value = "/register/verify", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-//    public ResponseEntity<LoginResponseDto> verifyOtp(@ModelAttribute UserRegisterDto dto, @RequestParam String otp) throws IOException {
-//        log.info("Received verify OTP request | email={} | otp=[HIDDEN]", dto.getEmail());
-//        return ResponseEntity.ok(authService.verifyOtpAndRegister(dto, otp));
-//    }
 
     @PostMapping("/logout") // Learn How is this Working
     public ResponseEntity<String> logout(HttpServletRequest request) {

@@ -1,13 +1,17 @@
 package com.gnn.newsnetwork.GnnNewsNetworkApplication.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class HomeNewsResponseDto {
 
     private Long id;
@@ -26,4 +30,5 @@ public class HomeNewsResponseDto {
     private String city;
 
     private LocalDateTime createdAt;
+    private String finalVideoUrl;  // <-- Add this
 }

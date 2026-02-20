@@ -1,6 +1,7 @@
 package com.gnn.newsnetwork.GnnNewsNetworkApplication.auth;
 
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.entity.Users;
+import com.gnn.newsnetwork.GnnNewsNetworkApplication.exception.InvalidRequestException;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.repository.UserRepository;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
@@ -59,7 +60,7 @@ public class AuthFilter extends OncePerRequestFilter {
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 Users users = userRepository.findByEmail(email)
-                        .orElseThrow(() -> new RuntimeException("Invalid token"));
+                        .orElseThrow(() ->  new InvalidRequestException("Invalid username or password"));
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(

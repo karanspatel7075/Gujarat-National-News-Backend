@@ -11,6 +11,8 @@ import com.gnn.newsnetwork.GnnNewsNetworkApplication.enums.MediaType;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.enums.NewsStatus;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.enums.ROLE;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.enums.TypeOfNews;
+import com.gnn.newsnetwork.GnnNewsNetworkApplication.exception.InvalidRequestException;
+import com.gnn.newsnetwork.GnnNewsNetworkApplication.exception.ResourceNotFoundException;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.repository.NewsRepository;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,10 +33,10 @@ public class AdminService {
 
     //  Approve Editor
     public void approveEditors(Long editorId) {
-        Users editor = userRepository.findById(editorId).orElseThrow(() -> new RuntimeException("Editor not found"));
+        Users editor = userRepository.findById(editorId).orElseThrow(() -> new ResourceNotFoundException("Editor not found with id: " + editorId));
 
         if(editor.getRole() != ROLE.EDITOR) {
-            throw new RuntimeException("User is not a editor");
+            throw new InvalidRequestException("User with id " + editorId + " is not an editor");
         }
 
         editor.setActive(true);
@@ -44,10 +46,10 @@ public class AdminService {
     // Reject Editor
     public void rejectEditor(Long editorId) {
         Users editor = userRepository.findById(editorId)
-                .orElseThrow(() -> new RuntimeException("Editor not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Editor not found with id: " + editorId));
 
         if (editor.getRole() != ROLE.EDITOR) {
-            throw new RuntimeException("User is not an editor");
+            throw new InvalidRequestException("User with id " + editorId + " is not an editor");
         }
 
         editor.setActive(false);
@@ -127,7 +129,6 @@ public class AdminService {
                 .map(this::mapToDigitalDto);
     }
 
-    // Map News -> DTO for admin
     private StoryNewsResponseDto mapToStoryDto(News news) {
         return StoryNewsResponseDto.builder()
                 .id(news.getId())
@@ -135,9 +136,9 @@ public class AdminService {
                 .shortDescription(news.getShortDescription())
                 .fullContext(news.getFullContext())
                 .category(news.getCategory())
-                .status(news.getStatus())
                 .state(news.getState())
                 .city(news.getCity())
+                .status(news.getStatus())
                 .mediaUrls(
                         news.getMediaList()
                                 .stream()
@@ -175,6 +176,7 @@ public class AdminService {
                 .city(news.getCity())
                 .mediaUrls(mediaUrls)
                 .audioUrl(audioUrl)
+                .finalVideoUrl(news.getFinalVideoUrl())
                 .createdAt(news.getCreatedAt())
                 .publishedAt(news.getPublishedAt()) // add here
                 .build();
@@ -182,7 +184,7 @@ public class AdminService {
 
     // Approve News
     public void approveNews(Long newsId, Users admin) {
-        News news = newsRepository.findById(newsId).orElseThrow(() -> new RuntimeException("News not found"));
+        News news = newsRepository.findById(newsId).orElseThrow(() -> new ResourceNotFoundException("News not found with id: " + newsId));
 
         news.setStatus(NewsStatus.PUBLISHED);
         news.setApprovedBy(admin);
@@ -202,7 +204,7 @@ public class AdminService {
     }
 
     public void rejectNews(Long newsId, Users admin) {
-        News news = newsRepository.findById(newsId).orElseThrow(() -> new RuntimeException("News not found"));
+        News news = newsRepository.findById(newsId).orElseThrow(() -> new ResourceNotFoundException("News not found with id: " + newsId));
 
         news.setStatus(NewsStatus.REJECTED);
         news.setApprovedBy(admin);

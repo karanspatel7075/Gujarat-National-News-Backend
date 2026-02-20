@@ -9,4 +9,6 @@ public class NewsFilterRequestDto {
     private String city;
     private String category;
     private TypeOfNews typeOfNews;
+    private String keyword;
+
 }

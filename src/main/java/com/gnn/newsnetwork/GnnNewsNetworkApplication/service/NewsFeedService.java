@@ -8,6 +8,7 @@ import com.gnn.newsnetwork.GnnNewsNetworkApplication.entity.News;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.enums.MediaType;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.enums.NewsStatus;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.enums.TypeOfNews;
+import com.gnn.newsnetwork.GnnNewsNetworkApplication.exception.SearchOperationException;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.repository.NewsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -63,8 +65,54 @@ public class NewsFeedService {
         return newsRepository.findDistinctPublishedCategories();
     }
 
+    @Transactional(readOnly = true)
+    public List<HomeNewsResponseDto> getNewsByCategory(String category) {
+
+        List<News> newsList =
+                newsRepository.findByCategory(NewsStatus.PUBLISHED, category);
+
+        return newsList.stream()
+                .map(this::mapToHomeDto)
+                .toList();
+    }
+
+
+    @Transactional(readOnly = true)
+    public List<HomeNewsResponseDto> getNewsByCities(List<String> cities) {
+
+        try {
+            // Clean input from frontend
+            List<String> normalizedCities = cities.stream()
+                    .filter(city -> city != null && !city.isBlank())
+                    .map(city -> city.trim().toLowerCase())
+                    .toList();
+
+            if (normalizedCities.isEmpty()) {
+                return List.of();
+            }
+
+            List<News> newsList =
+                    newsRepository.findByCities(NewsStatus.PUBLISHED, normalizedCities);
+
+            System.out.println("Normalized Cities: " + normalizedCities);
+            System.out.println("Results Found: " + newsList.size());
+
+
+            return newsList.stream()
+                    .map(this::mapToHomeDto)
+                    .toList();
+        } catch (Exception e) {
+            throw new SearchOperationException(
+                    "Unable to fetch news for selected cities."
+            );
+        }
+    }
+
+
+
+    @Transactional(readOnly = true)
     public List<DigitalNewsResponseDto> getLatest10Videos() {
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("publishedAt").descending());
 
         Page<News> page = newsRepository.findPublishedVideoNews(NewsStatus.PUBLISHED, pageable);
 
@@ -74,11 +122,12 @@ public class NewsFeedService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<DigitalNewsResponseDto> getSlidingVideos() {
 
         Pageable pageable = PageRequest.of(1,  // page 1 (skip first 10)
                 10, // next 10
-                Sort.by("createdAt").descending()
+                Sort.by("publishedAt").descending()
         );
 
         Page<News> page = newsRepository
@@ -110,7 +159,7 @@ public class NewsFeedService {
     }
 
 
-    private HomeNewsResponseDto mapToHomeDto(News news) {
+    public HomeNewsResponseDto mapToHomeDto(News news) {
         String audioUrl = news.getMediaList()
                 .stream()
                 .filter(m -> m.getMediaType() == MediaType.AUDIO)
@@ -136,6 +185,7 @@ public class NewsFeedService {
                 .audioUrl(audioUrl)
                 .state(news.getState())
                 .city(news.getCity())
+                .finalVideoUrl(news.getFinalVideoUrl())
                 .createdAt(news.getCreatedAt())
                 .build();
     }

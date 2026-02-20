@@ -1,14 +1,11 @@
 package com.gnn.newsnetwork.GnnNewsNetworkApplication.service;
 
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.common.NewsSpecification;
-import com.gnn.newsnetwork.GnnNewsNetworkApplication.dto.DigitalNewsResponseDto;
-import com.gnn.newsnetwork.GnnNewsNetworkApplication.dto.NewsFilterRequestDto;
-import com.gnn.newsnetwork.GnnNewsNetworkApplication.dto.PageResponse;
-import com.gnn.newsnetwork.GnnNewsNetworkApplication.dto.StoryNewsResponseDto;
+import com.gnn.newsnetwork.GnnNewsNetworkApplication.dto.*;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.entity.Media;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.entity.News;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.enums.MediaType;
-import com.gnn.newsnetwork.GnnNewsNetworkApplication.enums.TypeOfNews;
+import com.gnn.newsnetwork.GnnNewsNetworkApplication.exception.SearchOperationException;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.repository.NewsRepository;
 import jakarta.persistence.criteria.JoinType;
 import org.springframework.cache.annotation.Cacheable;
@@ -28,48 +25,49 @@ public class NewsFilterService {
 
     private final NewsRepository newsRepository;
 
-    @Cacheable(value = "filteredNews", key = "T(java.util.Objects).toString(#dto.state,'') + '-' + " + "T(java.util.Objects).toString(#dto.city,'') + '-' + " + "T(java.util.Objects).toString(#dto.category,'') + '-' + " + "#dto.typeOfNews + '-' + #page + '-' + #size")
-    public PageResponse<?> filterNews(NewsFilterRequestDto dto, int page, int size) {
+    @Cacheable(
+            value = "filteredNews",
+            key = "T(java.util.Objects).toString(#dto.state,'') + '-' + " +
+                    "T(java.util.Objects).toString(#dto.city,'') + '-' + " +
+                    "T(java.util.Objects).toString(#dto.category,'') + '-' + " +
+                    "T(java.util.Objects).toString(#dto.keyword,'') + '-' + " +
+                    "#dto.typeOfNews + '-' + #page + '-' + #size"
+    )
+    public PageResponse<HomeNewsResponseDto> filterNews(NewsFilterRequestDto dto, int page, int size) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        try {
+            Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
-        // This is dynamic query building.
-        Specification<News> spec = Specification
-                .where(NewsSpecification.isApproved())
-                .and(NewsSpecification.hasState(dto.getState()))
-                .and(NewsSpecification.hasCity(dto.getCity()))
-                .and(NewsSpecification.hasCategory(dto.getCategory()))
-                .and(NewsSpecification.hasType(dto.getTypeOfNews()));
+            // This is dynamic query building.
+            Specification<News> spec = Specification
+                    .where(NewsSpecification.isApproved())
+                    .and(NewsSpecification.hasState(dto.getState()))
+                    .and(NewsSpecification.hasCity(dto.getCity()))
+                    .and(NewsSpecification.hasCategory(dto.getCategory()))
+                    .and(NewsSpecification.hasKeyword(dto.getKeyword()))
+                    .and(NewsSpecification.hasType(dto.getTypeOfNews()));
 
-        Page<News> newsPage = newsRepository.findAll((root, query, cb) -> {
-            root.fetch("mediaList", JoinType.LEFT);
-            query.distinct(true);
-            return spec.toPredicate(root, query, cb);}, pageable);
+            Page<News> newsPage = newsRepository.findAll((root, query, cb) -> {
+                root.fetch("mediaList", JoinType.LEFT);
+                query.distinct(true);
+                return spec.toPredicate(root, query, cb);
+            }, pageable);
 
-        if (dto.getTypeOfNews() == TypeOfNews.DIGITAL) {
-
-            Page<DigitalNewsResponseDto> dtoPage =
-                    newsPage.map(this::mapToDigitalDto);
+            Page<HomeNewsResponseDto> dtoPage =
+                    newsPage.map(this::mapToHomeDto);
 
             return buildPageResponse(
                     dtoPage,
                     dtoPage.isEmpty()
-                            ? "No digital news found"
-                            : "Digital news fetched successfully"
+                            ? "No news found"
+                            : "News fetched successfully"
             );
-
-        } else {
-
-            Page<StoryNewsResponseDto> dtoPage =
-                    newsPage.map(this::mapToStoryDto);
-
-            return buildPageResponse(
-                    dtoPage,
-                    dtoPage.isEmpty()
-                            ? "No story news found"
-                            : "Story news fetched successfully"
+        } catch (Exception e) {
+            throw new SearchOperationException(
+                    "Error occurred while filtering news. Please try again."
             );
         }
+
     }
 
     // 🔥 Generic Page Builder
@@ -85,6 +83,36 @@ public class NewsFilterService {
                 .build();
     }
 
+    private HomeNewsResponseDto mapToHomeDto(News news) {
+        String audioUrl = news.getMediaList()
+                .stream()
+                .filter(m -> m.getMediaType() == MediaType.AUDIO)
+                .map(Media::getMediaUrl)
+                .findFirst()
+                .orElse(null);
+
+        List<String> mediaUrls = news.getMediaList()
+                .stream()
+                .filter(m -> m.getMediaType() != MediaType.AUDIO)
+                .map(Media::getMediaUrl)
+                .toList();
+
+        return HomeNewsResponseDto.builder()
+                .id(news.getId())
+                .title(news.getTitle())
+                .shortDescription(news.getShortDescription())
+                .fullContext(news.getFullContext())
+                .category(news.getCategory())
+                .type(news.getTypeOfNews().name())
+                .anchorName(news.getAnchorName())
+                .mediaUrls(mediaUrls)
+                .audioUrl(audioUrl)
+                .state(news.getState())
+                .finalVideoUrl(news.getFinalVideoUrl())
+                .city(news.getCity())
+                .createdAt(news.getCreatedAt())
+                .build();
+    }
 
     // =========================
     // 🔹 STORY MAPPING

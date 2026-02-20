@@ -3,6 +3,7 @@ package com.gnn.newsnetwork.GnnNewsNetworkApplication.exception;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.dto.ApiErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.connector.ClientAbortException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -49,6 +50,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGeneric(HttpServletRequest request, Exception ex) {
+        if (ex instanceof ClientAbortException) {
+            log.debug("Client aborted connection: {}", ex.getMessage());
+            return null;
+        }
+
         log.error("Unexpected error", ex);
 
         return ResponseEntity
@@ -62,4 +68,44 @@ public class GlobalExceptionHandler {
                         request.getRequestURI()
                 ));
     }
+
+    @ExceptionHandler(ClientAbortException.class)
+    public void handleClientAbort(ClientAbortException ex) {
+        // Do nothing. Client disconnected.
+    }
+
+    @ExceptionHandler(org.springframework.security.authentication.BadCredentialsException.class)
+    public ResponseEntity<ApiErrorResponse> handleBadCredentials(
+            HttpServletRequest request,
+            Exception ex) {
+
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(new ApiErrorResponse(
+                        "Invalid email or password",
+                        HttpStatus.UNAUTHORIZED.value(),
+                        LocalDateTime.now(),
+                        false,
+                        request.getRequestURI()
+                ));
+    }
+
+    @ExceptionHandler(SearchOperationException.class)
+    public ResponseEntity<ApiErrorResponse> handleSearchError(
+            HttpServletRequest request,
+            SearchOperationException ex) {
+
+        log.error("Search operation failed: {}", ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ApiErrorResponse(
+                        ex.getMessage(),
+                        HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                        LocalDateTime.now(),
+                        false,
+                        request.getRequestURI()
+                ));
+    }
+
 }

@@ -1,6 +1,7 @@
 package com.gnn.newsnetwork.GnnNewsNetworkApplication.config;
 
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.auth.AuthFilter;
+import com.gnn.newsnetwork.GnnNewsNetworkApplication.exception.CustomAuthenticationEntryPoint;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -32,12 +33,17 @@ import java.util.List;
 public class SecurityConfig {
     private final AuthFilter authFilter;
     private final UserDetailsService userDetailsService;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                )
                 .authorizeHttpRequests(auth -> auth
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                 .requestMatchers(
@@ -45,7 +51,10 @@ public class SecurityConfig {
                                         "/api/auth/**",
                                         "/uploads/**",
                                         "/api/homepage/**",
-                                        "/api/home/**").permitAll()
+                                        "/api/homepage//by-category", // Temporary for now remove afterward
+                                        "/api/home/**",
+                                        "/api/ads/**",
+                                        "/api/searchEngine/**").permitAll()
                                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                                 .anyRequest().authenticated()   // everything else needs authentication
                         // Everything else requires JWT

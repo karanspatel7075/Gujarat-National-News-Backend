@@ -29,6 +29,8 @@ public class DigitalNewsService {
 
     private final NewsRepository newsRepository;
     private final MediaRepository mediaRepository;
+    private final VideoProcessingService videoProcessingService;
+
 
     @CacheEvict(value = "filteredNews", allEntries = true)
     public News createDigitalNews(DigitalNewsRequestDto dto, Users editor) {
@@ -106,6 +108,20 @@ public class DigitalNewsService {
                                 .mediaUrl("/uploads/digital-news/" + filename)
                                 .build()
                 ); // Save the path in DataBase
+
+                if (detectMediaType(filename) == MediaType.VIDEO) {
+
+                    news.setVideoAbsolutePath(new File(dir, filename).getAbsolutePath());
+                    news.setProcessingStatus("PENDING");
+                    newsRepository.save(news);
+
+                    videoProcessingService.processVideo(
+                            news.getId(),
+                            news.getShortDescription(),   // or title
+                            "gu"
+                    );
+                }
+
 
             } catch (IOException e) {
                 throw new FileUploadException("Failed to upload media file");
