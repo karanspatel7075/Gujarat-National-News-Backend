@@ -118,7 +118,7 @@ public class DigitalNewsService {
                     videoProcessingService.processVideo(
                             news.getId(),
                             news.getShortDescription(),   // or title
-                            "gu"
+                            "gu-IN"
                     );
                 }
 

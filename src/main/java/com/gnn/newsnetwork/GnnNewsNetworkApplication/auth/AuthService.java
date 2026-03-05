@@ -1,20 +1,14 @@
 package com.gnn.newsnetwork.GnnNewsNetworkApplication.auth;
 
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.common.OtpGenerator;
-import com.gnn.newsnetwork.GnnNewsNetworkApplication.dto.ForgetPasswordRequestDto;
-import com.gnn.newsnetwork.GnnNewsNetworkApplication.dto.ResetPasswordRequestDto;
-import com.gnn.newsnetwork.GnnNewsNetworkApplication.entity.PasswordResetOtp;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.entity.Users;
-import com.gnn.newsnetwork.GnnNewsNetworkApplication.entity.UserOtp;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.enums.ROLE;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.exception.InvalidRequestException;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.repository.PasswordResetOtpRepository;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.repository.UserOtpRepository;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.repository.UserRepository;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.service.EmailService;
-import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,10 +16,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
