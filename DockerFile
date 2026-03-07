@@ -1,9 +1,17 @@
-FROM openjdk:21-jdk-slim
+# Use lightweight Java 21 image
+FROM eclipse-temurin:21-jdk
 
+# App directory inside container
 WORKDIR /app
 
-COPY target/news-app.jar app.jar
+# Copy project files
+COPY . .
 
+# Build the Spring Boot jar
+RUN ./mvnw clean package -DskipTests
+
+# Expose port used by Spring Boot
 EXPOSE 8080
 
-ENTRYPOINT ["java","-jar","app.jar"]
+# Start the application
+CMD ["java","-jar","target/gnn-news-network-0.0.1-SNAPSHOT.jar"]
