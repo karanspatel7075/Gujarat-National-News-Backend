@@ -205,7 +205,7 @@ GET    /api/news/category/{id}
 **Karan**  
 Backend Developer | Java | Spring Boot | System Design  
 
-GitHub: [https://github.com/yourusername](https://github.com/karanspatel7075)
+GitHub: https://github.com/karanspatel7075
 
 ---
 
