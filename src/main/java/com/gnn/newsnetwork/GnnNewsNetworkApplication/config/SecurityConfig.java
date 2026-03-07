@@ -4,6 +4,7 @@ import com.gnn.newsnetwork.GnnNewsNetworkApplication.auth.AuthFilter;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.exception.CustomAuthenticationEntryPoint;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -25,6 +26,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -73,40 +75,73 @@ public class SecurityConfig {
     }
 
     // CORS with Spring Security
+//    @Bean
+//    public CorsConfigurationSource corsConfigurationSource() {
+//        CorsConfiguration config = new CorsConfiguration();
+//
+//        config.setAllowedOrigins(List.of(
+//                "http://localhost:3000",
+//                "http://localhost:5173",
+//                "http://localhost:3001",
+//                "http://localhost:3002",
+//                "https://nondextrous-thad-feetless.ngrok-free.dev",
+//                "http://192.168.1.34:3000",
+//                "http://192.168.1.34:3001"
+//        ));
+//
+//        config.setAllowedMethods(List.of(
+//                "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
+//        ));
+//
+//        config.setAllowedHeaders(List.of(
+//                "Authorization",
+//                "Content-Type",
+//                "Accept",
+//                "Ngrok-Skip-Browser-Warning"
+//        ));
+//
+//        config.setExposedHeaders(List.of("Authorization"));
+//        config.setAllowCredentials(true);
+//
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", config);
+//        return source;
+//    }
+
+    @Value("${app.cors.allowed-origins}")
+    private String allowedOrigins;
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(List.of(
-                "http://localhost:3000",
-                "http://localhost:5173",
-                "http://localhost:3001",
-                "http://localhost:3002",
-                "https://nondextrous-thad-feetless.ngrok-free.dev",
-                "http://192.168.1.34:3000",
-                "http://192.168.1.34:3001"
+        config.setAllowedOriginPatterns(List.of(
+                "http://localhost:*",
+                "https://*.vercel.app",
+                "https://*.netlify.app"
         ));
 
         config.setAllowedMethods(List.of(
-                "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
+                "GET","POST","PUT","DELETE","PATCH","OPTIONS"
         ));
 
         config.setAllowedHeaders(List.of(
                 "Authorization",
                 "Content-Type",
-                "Accept",
-                "Ngrok-Skip-Browser-Warning"
+                "Accept"
         ));
 
         config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+
         source.registerCorsConfiguration("/**", config);
+
         return source;
     }
-
-
 
     @Bean
     public RoleHierarchy roleHierarchy() {

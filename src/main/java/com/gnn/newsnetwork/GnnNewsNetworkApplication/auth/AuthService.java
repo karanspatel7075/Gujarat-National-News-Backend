@@ -7,7 +7,6 @@ import com.gnn.newsnetwork.GnnNewsNetworkApplication.exception.InvalidRequestExc
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.repository.PasswordResetOtpRepository;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.repository.UserOtpRepository;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.repository.UserRepository;
-import com.gnn.newsnetwork.GnnNewsNetworkApplication.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,11 +27,6 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthTokenGen authTokenGen;
-
-    private final OtpGenerator otpGenerator;
-    private final PasswordResetOtpRepository resetOtpRepository;
-    private final EmailService emailServiceImple;
-    private final UserOtpRepository otpRepository;
 
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 

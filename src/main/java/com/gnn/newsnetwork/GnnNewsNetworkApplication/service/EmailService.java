@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
 
-@Service
+//@Service
 public class EmailService {
 
     @Autowired
