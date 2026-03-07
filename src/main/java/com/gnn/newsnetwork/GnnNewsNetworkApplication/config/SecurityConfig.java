@@ -108,9 +108,6 @@ public class SecurityConfig {
 //        return source;
 //    }
 
-    @Value("${app.cors.allowed-origins}")
-    private String allowedOrigins;
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
