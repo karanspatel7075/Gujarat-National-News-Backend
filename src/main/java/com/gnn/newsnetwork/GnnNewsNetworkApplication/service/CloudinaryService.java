@@ -63,7 +63,7 @@ public class CloudinaryService implements MediaStorageService {
             }
 
             Map uploadResult = cloudinary.uploader().upload(
-                    file.getInputStream(),
+                    file.getBytes(),
                     ObjectUtils.asMap(
                             "resource_type", "auto",
                             "folder", folder
