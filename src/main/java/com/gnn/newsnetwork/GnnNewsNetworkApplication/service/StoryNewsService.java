@@ -37,7 +37,7 @@ public class StoryNewsService {
     private final TextToSpeechService2 textToSpeechService2;
     private final MediaStorageService mediaStorageService;
 
-    @CacheEvict(value = "filteredNews", allEntries = true)
+//    @CacheEvict(value = "filteredNews", allEntries = true)
     public News createStoryNews(StoryNewsRequestDto dto, Users editor) {
 
         log.info("====== STORY NEWS CREATION STARTED ======");

@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 @EnableAsync
 @SpringBootApplication
-@EnableCaching
+//@EnableCaching
 public class GnnNewsNetworkApplication {
 
 	public static void main(String[] args) {
