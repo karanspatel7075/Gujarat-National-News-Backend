@@ -1,11 +1,8 @@
 package com.gnn.newsnetwork.GnnNewsNetworkApplication.auth;
 
-import com.gnn.newsnetwork.GnnNewsNetworkApplication.common.OtpGenerator;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.entity.Users;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.enums.ROLE;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.exception.InvalidRequestException;
-import com.gnn.newsnetwork.GnnNewsNetworkApplication.repository.PasswordResetOtpRepository;
-import com.gnn.newsnetwork.GnnNewsNetworkApplication.repository.UserOtpRepository;
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

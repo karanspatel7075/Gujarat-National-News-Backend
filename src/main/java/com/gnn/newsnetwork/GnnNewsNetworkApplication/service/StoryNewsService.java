@@ -40,13 +40,24 @@ public class StoryNewsService {
     @CacheEvict(value = "filteredNews", allEntries = true)
     public News createStoryNews(StoryNewsRequestDto dto, Users editor) {
 
+        log.info("====== STORY NEWS CREATION STARTED ======");
+        log.info("Editor: {}", editor != null ? editor.getUsername() : "NULL");
+        log.info("Title: {}", dto.getTitle());
+        log.info("Category: {}", dto.getCategory());
+        log.info("City: {}", dto.getCity());
+        log.info("State: {}", dto.getState());
+
         if (dto.getTitle() == null || dto.getTitle().isBlank()) {
+            log.error("Title validation failed");
             throw new BadRequestException("Title is required");
         }
 
         if (dto.getFullContext() == null || dto.getFullContext().isBlank()) {
+            log.error("Full context validation failed");
             throw new BadRequestException("Full context is required");
         }
+
+        log.info("Saving news in database...");
 
         News savedNews = newsRepository.save(
                 News.builder()
@@ -64,46 +75,101 @@ public class StoryNewsService {
                         .build()
         );
 
+        log.info("News saved successfully | NewsID={}", savedNews.getId());
+
         MultipartFile[] mediaFiles = dto.getMediaFiles();
 
         if (mediaFiles == null || mediaFiles.length == 0) {
+            log.warn("No media files uploaded for NewsID={}", savedNews.getId());
             return savedNews;
         }
 
+        log.info("Total files received: {}", mediaFiles.length);
+
         for (MultipartFile file : mediaFiles) {
 
-            if (file == null || file.isEmpty()) continue;
+            if (file == null || file.isEmpty()) {
+                log.warn("Skipping empty file");
+                continue;
+            }
 
-            String contentType = file.getContentType();
+            try {
 
-            String mediaUrl;
+                String originalName = file.getOriginalFilename();
+                String contentType = file.getContentType();
+                long size = file.getSize();
 
-            if (contentType.startsWith("image/")) {
+                log.info("Processing file -> Name: {}, Type: {}, Size: {} bytes",
+                        originalName, contentType, size);
 
-                mediaUrl = mediaStorageService.uploadImage(file);
+                if (contentType == null) {
+                    log.error("File content type is NULL for file {}", originalName);
+                    throw new BadRequestException("File content type not detected");
+                }
 
-            } else if (contentType.equals("video/mp4")) {
+                String mediaUrl;
 
-                mediaUrl = mediaStorageService.uploadVideo(file);
+                // IMAGE UPLOAD
+                if (contentType.startsWith("image/")) {
 
-            } else {
+                    log.info("Uploading image to Cloudinary...");
 
-                throw new BadRequestException("Only images or MP4 videos allowed");
+                    mediaUrl = mediaStorageService.uploadImage(file);
+
+                    log.info("Image uploaded successfully -> URL: {}", mediaUrl);
+
+                    mediaRepository.save(
+                            Media.builder()
+                                    .news(savedNews)
+                                    .mediaType(MediaType.IMAGE)
+                                    .mediaUrl(mediaUrl)
+                                    .build()
+                    );
+
+                    log.info("Image saved in database for NewsID={}", savedNews.getId());
+
+                }
+
+                // VIDEO UPLOAD
+                else if ("video/mp4".equals(contentType)) {
+
+                    log.info("Uploading video to Cloudinary...");
+
+                    mediaUrl = mediaStorageService.uploadVideo(file);
+
+                    log.info("Video uploaded successfully -> URL: {}", mediaUrl);
+
+                    mediaRepository.save(
+                            Media.builder()
+                                    .news(savedNews)
+                                    .mediaType(MediaType.VIDEO)
+                                    .mediaUrl(mediaUrl)
+                                    .build()
+                    );
+
+                    log.info("Video saved in database for NewsID={}", savedNews.getId());
+
+                }
+
+                else {
+
+                    log.error("Unsupported file type detected: {}", contentType);
+                    throw new BadRequestException("Only images or MP4 videos allowed");
+
+                }
+
+            } catch (Exception e) {
+
+                log.error("File upload failed: {}", e.getMessage());
+                log.error("Stack trace:", e);
+
+                throw new RuntimeException("Media upload failed");
 
             }
 
-            mediaRepository.save(
-                    Media.builder()
-                            .news(savedNews)
-                            .mediaType(contentType.startsWith("image/")
-                                    ? MediaType.IMAGE
-                                    : MediaType.VIDEO)
-                            .mediaUrl(mediaUrl)
-                            .build()
-            );
-
         }
 
+        log.info("====== STORY NEWS CREATION COMPLETED ======");
         return savedNews;
     }
 

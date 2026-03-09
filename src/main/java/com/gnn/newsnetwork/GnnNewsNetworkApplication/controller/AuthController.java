@@ -1,13 +1,10 @@
 package com.gnn.newsnetwork.GnnNewsNetworkApplication.controller;
 
 import com.gnn.newsnetwork.GnnNewsNetworkApplication.auth.*;
-import com.gnn.newsnetwork.GnnNewsNetworkApplication.dto.ResetPasswordRequestDto;
-import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

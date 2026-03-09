@@ -30,7 +30,6 @@ public class AuthTokenGen {
                 .setSubject(users.getUsername())
                 .claim("userId", users.getId())
                 .claim("roles", users.getRole())
-//                .claim("roles", "ROLE_" + users.getRole().name())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + (jwtExpiration)))
                 .signWith(getSecretKey(), SignatureAlgorithm.HS256) // new Signature Algorithm
