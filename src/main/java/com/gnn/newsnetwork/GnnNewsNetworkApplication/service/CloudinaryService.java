@@ -65,15 +65,16 @@ public class CloudinaryService implements MediaStorageService {
             Map uploadResult = cloudinary.uploader().upload(
                     file.getInputStream(),
                     ObjectUtils.asMap(
-                            "resource_type", type,
+                            "resource_type", "auto",
                             "folder", folder
                     )
             );
 
             return uploadResult.get("secure_url").toString();
 
-        } catch (IOException e) {
-            throw new RuntimeException("Cloudinary upload failed");
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Cloudinary upload failed: " + e.getMessage());
         }
     }
 }
